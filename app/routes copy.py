@@ -1,4 +1,3 @@
-import re
 from flask import Blueprint, request, jsonify, render_template, send_from_directory
 import warnings
 from crewai import Crew
@@ -31,7 +30,6 @@ def favicon():
     """Rota para servir o favicon."""
     return send_from_directory(os.path.join(bp.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-
 @bp.route('/api/kickoff', methods=['POST'])
 def kickoff():
     """Endpoint para iniciar o processo da equipe."""
@@ -46,11 +44,9 @@ def kickoff():
     inputs = {"topic": topic, "posts": posts}
     result = crew.kickoff(inputs=inputs)
 
-    # Tratar o resultado para remover os marcadores markdown, quebras de linha e blocos
+    # Tratar o resultado para remover os marcadores markdown e espaços indesejados
     clean_result = result.raw.strip()  # Remove espaços em branco no início/fim
-    clean_result = re.sub(r"^```[a-zA-Z0-9]*", "", clean_result)  # Remove ```markdown ou blocos de código
-    clean_result = re.sub(r"```$", "", clean_result.strip())  # Remove ``` no final, se houver
-    clean_result = re.sub(r"[\n\t\r]*$", "", clean_result)  # Remove quebras de linha adicionais no final
+    clean_result = clean_result.lstrip("```markdown").rstrip("```").strip()
 
     # Converter CrewOutput para JSON serializável
     response_data = {
@@ -60,7 +56,6 @@ def kickoff():
     }
 
     return jsonify(response_data)
-
 
 
 
